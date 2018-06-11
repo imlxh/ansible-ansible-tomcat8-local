@@ -1,0 +1,26 @@
+jdk_archive_file: jdk-8u77-linux-x64.tar.gz
+jdk_extract_dir: jdk1.8.0_77
+
+tomcat_version: 8.5.31
+tomcat_file: apache-tomcat-8.5.31.tar.gz
+app_name: demo-tomcat-8080
+app_directory: /data/app
+
+http_port: 8080
+ajp_port: 8009
+
+ipv6_disable: True
+
+jmx_registry_port: 10080
+jmx_server_port: 10081
+
+tomcat_user: tomcat
+tomcat_group: tomcat
+
+min_heap_size: 512M
+max_heap_size: 512M
+metaspace_size: 128M
+max_metaspace_size: 128M
+
+gc_log_file: /logs/gc.log
+heap_dump_dir: /logs/

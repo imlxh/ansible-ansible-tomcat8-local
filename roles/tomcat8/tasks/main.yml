@@ -1,0 +1,75 @@
+---
+
+- name: Add tomcat
+  file: path={{app_directory}} state=directory recurse=yes
+
+- name: Extract tomcat
+  unarchive: src=tomcat/{{tomcat_file}} dest=/opt
+
+#- name: Extract tomcat
+#  command: /bin/tar xzf tomcat/{{tomcat_file}} -C {{app_directory}} creates={{app_name}}
+
+- name: Move tomcat
+  shell: /bin/mv /opt/apache-tomcat-{{tomcat_version}} {{app_directory}}/{{app_name}}
+
+- name: Download tomcat extras libralies
+  get_url: url=http://archive.apache.org/dist/tomcat/tomcat-8/v{{tomcat_version}}/bin/extras/{{item.name}}
+           dest={{app_directory}}/{{app_name}}/{{item.dir}}/ 
+  with_items:
+    - { name: catalina-jmx-remote.jar  , dir: lib }
+#    - { name: tomcat-juli-adapters.jar , dir: lib }
+#    - { name: tomcat-juli.jar          , dir: bin }
+
+- name: Remove webapps
+  file: path={{app_directory}}/{{app_name}}/webapps/{{item}} state=absent
+  with_items:
+    - host-manager
+    - manager
+    - ROOT
+    - docs
+    - examples
+
+#- name: Remove logging.properties
+#  file: path=/opt/{{app_name}}/conf/logging.properties state=absent
+
+#- name: Add logback libralies
+#  copy: src=tomcat/lib dest=/opt/{{app_name}}/
+
+- name: Add tomcat environment file
+  template: src=tomcat/bin/setenv.sh dest={{app_directory}}/{{app_name}}/bin/setenv.sh mode=0755
+
+- name: Add tomcat configuration files - templates
+  template: src=tomcat/conf/{{item}} dest={{app_directory}}/{{app_name}}/conf/{{item}}
+  with_items:
+    - server.xml
+
+- name: Create tomcat group
+  group: name={{tomcat_group}}
+
+- name: Create tomcat user
+  user: name={{tomcat_user}} group={{tomcat_group}} home={{app_directory}}
+
+- name: Change tomcat directory permissions
+  file: path={{app_directory}}/{{app_name}} owner={{tomcat_user}} group={{tomcat_group}} state=directory recurse=yes
+
+#- name: Add tomcat systemd unit file
+#  copy: src=systemd/tomcat.service dest=/usr/lib/systemd/system/tomcat.service owner=root group=root
+
+#- name: systemd daemon-reload
+#  shell: systemctl daemon-reload
+
+#- name: Start tomcat
+#  service: name=tomcat state=restarted enabled=yes
+
+#- name: Add firewalld service file
+#  template: src=firewalld/tomcat.xml dest=/usr/lib/firewalld/services/tomcat.xml owner=root group=root
+
+#- name: Restart firewalld
+#  service: name=firewalld state=restarted enabled=yes
+
+#- name: Expose tomcat
+#  shell: firewall-cmd --add-service=tomcat --zone=public --permanent
+
+#- name: Wait for tomcat started
+#  wait_for: port={{http_port}}
+
